@@ -117,3 +117,15 @@
   evidence. Sebastian still needs to review/explain the code honestly and submit
   the repository through the portal; AI cannot assert those human steps happened.
 
+## 2026-10-18 - Beginner codebase guide
+
+- Sebastian requested a Markdown explanation of the whole codebase and the three
+  ownership questions. AI read the current source, migrations, scripts, tests and
+  project documentation and wrote CODEBASE_GUIDE.md, linked from the README.
+- The guide explains each maintained file, Python/HTTP/SQL vocabulary, complete
+  request flows, concurrency/idempotency, inclusive token arithmetic, and verified
+  webhook access changes. It includes practice questions and reasoned answers.
+- This is documentation work; creating the guide does not establish that Sebastian
+  has independently reviewed or understood the implementation. His ownership and
+  submission checkboxes remain unchanged.
+

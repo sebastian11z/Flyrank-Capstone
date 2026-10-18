@@ -4,6 +4,9 @@ A backend for two tenant organizations: meter simulated generation, enforce plan
 quotas before work, calculate exact USD costs, and synchronize Stripe **test-mode**
 subscriptions. No model call, paid infrastructure, or real payment is required.
 
+For a beginner explanation of every file, request flow, and the three ownership
+questions, read [CODEBASE_GUIDE.md](CODEBASE_GUIDE.md).
+
 **Submission status:** local implementation and real Stripe test Checkout,
 signed delivery, replay, update and cancellation are verified in
 [EVIDENCE.md](EVIDENCE.md). Sebastian's code explanation and portal submission
