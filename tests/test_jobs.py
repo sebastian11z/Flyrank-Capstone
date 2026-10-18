@@ -105,3 +105,31 @@ def test_unknown_customer_is_ignored_and_deduplicated(settings, gateway):
     assert not jobs.run_once(settings, gateway)
     assert usage(settings.db_path, "tenant_b")["plan"] == "free"
 
+
+def test_late_old_subscription_deletion_cannot_undo_new_active_one(settings, gateway):
+    gateway.subscriptions["sub_a"]["status"] = "canceled"
+    enqueue_event(settings, event("evt_old", event_type="customer.subscription.deleted"))
+    jobs.run_once(settings, gateway)
+    gateway.subscriptions["sub_new"] = subscription(sub_id="sub_new")
+    enqueue_event(settings, event("evt_new", sub_id="sub_new"))
+    jobs.run_once(settings, gateway)
+    enqueue_event(settings, event("evt_late_old", event_type="customer.subscription.deleted"))
+    jobs.run_once(settings, gateway)
+    assert usage(settings.db_path, "tenant_a")["plan"] == "pro"
+    with connect(settings.db_path) as db:
+        assert db.execute("SELECT status FROM webhook_jobs WHERE event_id='evt_late_old'").fetchone()[0] == "ignored"
+
+
+def test_three_crashed_attempts_alert_and_operator_retry(settings, gateway, caplog):
+    enqueue_event(settings, event())
+    for attempt in range(3):
+        assert jobs.claim(settings.db_path, 2_000_000_000 + attempt * 121)["attempts"] == attempt + 1
+    with caplog.at_level(logging.CRITICAL):
+        assert jobs.claim(settings.db_path, 2_000_000_363) is None
+    assert "LeaseExpired" in caplog.text
+    assert jobs.retry_failed(settings.db_path, "evt_fixture")
+    assert not jobs.retry_failed(settings.db_path, "evt_fixture")
+    assert jobs.run_once(settings, gateway)
+    assert not jobs.retry_failed(settings.db_path, "evt_fixture")
+    assert usage(settings.db_path, "tenant_a")["plan"] == "pro"
+

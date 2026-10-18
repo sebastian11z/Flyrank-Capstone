@@ -44,3 +44,26 @@
   warning. Those are synthetic events and fake Stripe transport, not live proof.
 - Actual Stripe Checkout/CLI evidence remains pending local account configuration.
 
+## 2026-10-18 - Phase 4: evidence, teaching, and final local checks
+
+- AI added the exact run/seed/test commands, evaluator manifest, README diagram,
+  detailed TUTORIAL.md, and requirement-by-requirement EVIDENCE.md. Actual Stripe
+  and human steps are explicitly unchecked instead of being represented by mocks.
+- A final boundary review caught an off-by-one Retry-After error at whole seconds.
+  It now uses ceiling rather than unconditional +1, with a Dec 31 last-second test.
+- Actual full run: `python -m pytest -v --tb=short`: **59 passed, 1 warning in
+  15.19s**. The warning is upstream TestClient/httpx deprecation, not a failed test.
+- Actual `python -m app` boot, `/health` 200, `/openapi.json` 200, and live HTTP
+  `scripts/probe.py core` passed: two byte-identical responses, one new event,
+  exactly +6,600 micro-USD. Event ID is recorded in EVIDENCE.md.
+- `pip check` reported no broken requirements. Repeated seed preserved data.
+  Tracked-file scan found no local `.env` credential values. Local DB, credentials,
+  source brief and downloaded tools remain outside Git.
+- Official Stripe CLI v1.54.0 was downloaded into ignored `tmp/stripe/bin`; its
+  archive SHA-256 matched the GitHub release asset digest before extraction.
+- The local `.env` still has no Stripe key, price or webhook secret at this check.
+  Sebastian was asked to configure them locally using the README; no secret was
+  requested in chat. Live Checkout is still unverified.
+- GitHub Actions is configured for clean Ubuntu and Windows Python 3.12 checks.
+  CI results will be recorded after the pushed revision has actually run.
+

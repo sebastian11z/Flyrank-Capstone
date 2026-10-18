@@ -96,3 +96,22 @@ def worker_loop(settings, gateway, stop: threading.Event):
             logger.error("BACKGROUND_WORKER_ERROR error_type=%s", type(error).__name__)
             worked = False
         stop.wait(0.1 if worked else 1)
+
+
+def retry_failed(path, event_id):
+    with connect(path, write=True) as db:
+        return bool(db.execute("UPDATE webhook_jobs SET status='pending',attempts=0,available_at=?,"
+                               "lease_until=NULL,lease_token=NULL,last_error_type=NULL "
+                               "WHERE event_id=? AND status='failed'", (int(time.time()), event_id)).rowcount)
+
+
+if __name__ == "__main__":
+    import argparse
+    from app.config import Settings
+    parser = argparse.ArgumentParser(description="Retry a failed job after correcting its configuration/cause")
+    parser.add_argument("event_id")
+    args = parser.parse_args()
+    if not retry_failed(Settings.from_env().db_path, args.event_id):
+        parser.exit(1, "No failed job matched. Completed jobs are never reset.\n")
+    print("Failed job queued for retry.")
+

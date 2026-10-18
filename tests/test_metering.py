@@ -120,3 +120,22 @@ def test_live_key_rejected_without_echoing_it(tmp_path):
         Settings(db_path=tmp_path / "unused", stripe_secret=key)
     assert key not in str(failure.value)
 
+
+def test_pricing_subset_properties_and_immutable_historical_cost(settings, monkeypatch):
+    request = dict(input_tokens=1000, cached_input_tokens=400, output_tokens=500, reasoning_tokens=200)
+    original = metering.cost_of(Generation(**request))
+    assert metering.cost_of(Generation(**{**request, "reasoning_tokens": 300})) == original
+    assert metering.cost_of(Generation(**{**request, "cached_input_tokens": 500})) == original - 100
+    metering.record(settings.db_path, "tenant_a", Generation(**request), "before-price-change")
+    monkeypatch.setattr(metering, "INPUT_TOKEN_MICRO_USD", 999)
+    assert metering.usage(settings.db_path, "tenant_a")["cost_micro_usd"] == original
+
+
+def test_retry_after_exact_last_second_and_year_rollover(settings, monkeypatch):
+    monkeypatch.setattr(metering, "utc_now", lambda: datetime(2026, 12, 31, 23, 59, 59, tzinfo=timezone.utc))
+    metering.record(settings.db_path, "tenant_a", Generation(input_tokens=100_000), "full")
+    with pytest.raises(DomainError) as failure:
+        metering.record(settings.db_path, "tenant_a", Generation(output_tokens=1), "over")
+    assert failure.value.headers["Retry-After"] == "1"
+    assert failure.value.body["resets_at"] == "2027-01-01T00:00:00+00:00"
+

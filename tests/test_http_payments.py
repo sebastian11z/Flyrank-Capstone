@@ -191,3 +191,75 @@ def test_official_sdk_encodes_checkout_and_customer_contract(settings):
     assert http.calls[-1][2]["Idempotency-Key"] == "metering-checkout-stable_attempt"
     assert http.calls[-2][2]["Idempotency-Key"] == "metering-customer-stable_customer"
 
+
+def test_worker_runs_off_http_path_and_health_exposes_exhausted_jobs(settings, gateway):
+    import threading
+    started, release = threading.Event(), threading.Event()
+    gateway.subscriptions["sub_a"] = subscription()
+    retrieve = gateway.retrieve_subscription
+    def delayed(sub_id):
+        started.set()
+        assert release.wait(5)
+        return retrieve(sub_id)
+    gateway.retrieve_subscription = delayed
+    with TestClient(create_app(settings, gateway, start_worker=True)) as client:
+        try:
+            assert client.post("/billing/checkout", headers={"X-API-Key": KEY_A}).status_code == 200
+            raw, headers = signed(event(), settings.webhook_secret)
+            assert client.post("/webhooks/stripe", content=raw, headers=headers).json() == {"status": "queued"}
+            assert started.wait(3)
+            assert client.get("/usage", headers={"X-API-Key": KEY_A}).json()["plan"] == "free"
+            release.set()
+            until = time.monotonic() + 5
+            while time.monotonic() < until and usage(settings.db_path, "tenant_a")["plan"] != "pro":
+                time.sleep(0.02)
+            assert client.get("/usage", headers={"X-API-Key": KEY_A}).json()["plan"] == "pro"
+            with connect(settings.db_path, write=True) as db:
+                db.execute("UPDATE webhook_jobs SET status='failed' WHERE event_id='evt_fixture'")
+            health = client.get("/health")
+            assert health.status_code == 503 and health.json()["failed_background_jobs"] == 1
+        finally:
+            release.set()
+
+
+@pytest.mark.parametrize("change", ["live", "inactive", "amount", "currency", "interval", "metered"])
+def test_checkout_rejects_misconfigured_stripe_price(settings, change):
+    from app.models import DomainError
+    data = {"id": "price_pro", "object": "price", "active": True, "livemode": False,
+            "currency": "usd", "unit_amount": 1900,
+            "recurring": {"interval": "month", "interval_count": 1, "usage_type": "licensed"}}
+    if change == "live":
+        data["livemode"] = True
+    elif change == "inactive":
+        data["active"] = False
+    elif change == "amount":
+        data["unit_amount"] = 1901
+    elif change == "currency":
+        data["currency"] = "php"
+    elif change == "interval":
+        data["recurring"]["interval"] = "year"
+    else:
+        data["recurring"]["usage_type"] = "metered"
+    gateway = StripeGateway(settings)
+    gateway.client.v1.prices.retrieve = lambda _: stripe.Price.construct_from(data, settings.stripe_secret)
+    with pytest.raises(DomainError) as error:
+        gateway.validate_price()
+    assert error.value.status == 503
+
+
+def test_checkout_expiry_and_ambiguous_old_attempt(settings, gateway):
+    from app.models import DomainError
+    first = checkout(settings, gateway, "tenant_a")
+    gateway.sessions[first["session_id"]]["status"] = "expired"
+    with pytest.raises(DomainError) as error:
+        checkout(settings, gateway, "tenant_a")
+    assert error.value.body["error"] == "checkout_expired"
+    second = checkout(settings, gateway, "tenant_a")
+    assert second["session_id"] != first["session_id"]
+    with connect(settings.db_path, write=True) as db:
+        db.execute("UPDATE checkout_attempts SET session_id=NULL,created_at=? WHERE tenant_id='tenant_a'",
+                   (int(time.time()) - 24 * 3600,))
+    with pytest.raises(DomainError) as error:
+        checkout(settings, gateway, "tenant_a")
+    assert error.value.body["error"] == "checkout_needs_reconciliation"
+

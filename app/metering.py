@@ -2,6 +2,7 @@ import calendar
 import hashlib
 import json
 from datetime import datetime, timedelta, timezone
+from math import ceil
 from pathlib import Path
 from uuid import uuid4
 
@@ -87,7 +88,7 @@ def record(path: Path, tenant_id: str, request: Generation, key: str):
                 last = calendar.monthrange(now.year, now.month)[1]
                 reset = now.replace(day=last, hour=0, minute=0, second=0, microsecond=0)
                 reset += timedelta(days=1)
-                retry = max(1, int((reset - now).total_seconds()) + 1)
+                retry = max(1, ceil((reset - now).total_seconds()))
                 raise DomainError(429, "quota_exceeded", f"Monthly {meter} quota exceeded; wait for reset or upgrade",
                                   headers={"Retry-After": str(retry)}, meter=meter, used=current,
                                   requested=requested, limit=limit, resets_at=reset.isoformat())

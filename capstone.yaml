@@ -1,0 +1,33 @@
+name: flyrank-capstone-metering-billing
+runtime: Python 3.12
+install: python -m pip install -r requirements.txt
+run: python -m app
+seed: python -m app.seed
+test: python -m pytest -q
+base_url: http://127.0.0.1:8000
+endpoints:
+  - method: GET
+    path: /health
+  - method: POST
+    path: /generate
+    auth_header: X-API-Key
+    auth_env: DEMO_TENANT_A_KEY
+    idempotency_header: Idempotency-Key
+    body: {input_tokens: 1000, cached_input_tokens: 400, output_tokens: 500, reasoning_tokens: 200}
+  - method: GET
+    path: /usage
+    auth_header: X-API-Key
+    auth_env: DEMO_TENANT_A_KEY
+  - method: POST
+    path: /billing/checkout
+    auth_header: X-API-Key
+    auth_env: DEMO_TENANT_A_KEY
+  - method: GET
+    path: /billing/status
+    auth_header: X-API-Key
+    auth_env: DEMO_TENANT_A_KEY
+  - method: POST
+    path: /webhooks/stripe
+    signature_header: Stripe-Signature
+    signature_env: STRIPE_WEBHOOK_SECRET
+
