@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+data/
+tmp/
+*.sqlite3*
+Usage Metering Billing Engine Live Capstone.pdf
+
