@@ -43,7 +43,7 @@ class StripeGateway:
             "metadata": {"tenant_id": tenant_id},
             "subscription_data": {"metadata": {"tenant_id": tenant_id}},
             "line_items": [{"price": self.settings.price_id, "quantity": 1}],
-            "payment_method_types": ["card"],
+            "allowed_payment_method_types": ["card"],
             "success_url": f"{self.settings.base_url}/billing/success",
             "cancel_url": f"{self.settings.base_url}/billing/cancel",
         }, options={"idempotency_key": f"metering-checkout-{attempt_id}"}).to_dict()

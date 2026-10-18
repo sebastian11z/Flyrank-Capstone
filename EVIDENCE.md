@@ -150,6 +150,25 @@ databases; fake Stripe data/transport does not contact Stripe or spend money.
   initial CLI delivery, two replays of an actual test event with unchanged job,
   and a Dashboard update/cancel followed by the corresponding signed sync.
 
+  **Guided setup progress (actual account, 2026-10-18):** the test API key
+  authenticated, the active USD 19/month licensed Pro price passed validation,
+  and the Stripe CLI listener connected using API version 2026-09-30.endive.
+  The app was restarted to load the local signing secret. Actual HTTP output:
+
+  ```text
+  GET /health: 200 {"status":"ok","failed_background_jobs":0}
+  POST /webhooks/stripe with Stripe-Signature: invalid
+  400 {"error":"invalid_webhook","message":"Invalid payload or Stripe signature"}
+  GET /billing/status: {"tenant_id":"tenant_a","plan":"free","subscription_status":"free","jobs":[]}
+  ```
+
+  The forged-webhook portion is now proven against the real running configuration.
+  A real test Checkout session was also created and opened in the browser after
+  correcting the API's card-filter parameter to `allowed_payment_method_types`.
+  The updated SDK contract and all 29 HTTP/payment tests passed. Payment completion,
+  upgrade, real event replay and cancellation are still pending; this checkbox
+  remains unchecked.
+
 ### Data model, tests and documentation
 
 - [x] Required tables exist and customer data is tenant-isolated.

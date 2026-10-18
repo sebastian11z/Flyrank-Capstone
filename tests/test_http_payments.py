@@ -187,6 +187,8 @@ def test_official_sdk_encodes_checkout_and_customer_contract(settings):
     assert body["mode"] == ["subscription"]
     assert body["customer"] == ["cus_fixture"]
     assert body["line_items[0][price]"] == ["price_pro"]
+    assert body["allowed_payment_method_types[0]"] == ["card"]
+    assert "payment_method_types[0]" not in body
     assert body["subscription_data[metadata][tenant_id]"] == ["tenant_a"]
     assert http.calls[-1][2]["Idempotency-Key"] == "metering-checkout-stable_attempt"
     assert http.calls[-2][2]["Idempotency-Key"] == "metering-customer-stable_customer"

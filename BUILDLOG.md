@@ -71,3 +71,27 @@
   and the live duplicate/pricing HTTP probe. It reused the isolated dependency
   environment; clean dependency installation is independently proven by CI.
 
+## 2026-10-18 - Guided real Stripe setup
+
+- Sebastian requested help configuring Stripe. His local test secret authenticated
+  successfully; the configured price value was not a Stripe Price ID. AI created
+  or reused the FlyRank Pro test product and exact USD 19/month licensed price,
+  then saved the valid ID in ignored `.env`.
+- The CLI obtained its test webhook signing secret using the local API key through
+  the child process environment. The secret was captured and written directly to
+  `.env`, without displaying it. The listener is connected using API version
+  2026-09-30.endive; its startup secret is redacted from tool output.
+- After restarting the API, a real forged-signature request returned 400; tenant A
+  remained Free with zero webhook jobs.
+- Real Checkout creation exposed another AI integration mistake: the current
+  Stripe API rejects `payment_method_types`. The adapter now uses the documented
+  `allowed_payment_method_types` card filter. The SDK contract test checks that
+  field; all 29 HTTP/payment tests passed in 3.57s.
+- Stripe retained the prior failed request under its idempotency key. Before
+  replacing the failed local intent, AI queried its customer and proved zero
+  Checkout sessions and zero subscriptions. Only that uncompleted intent was
+  reset; usage and subscription state were preserved.
+- The corrected live API request created hosted test Checkout and opened it in
+  Sebastian's browser. Actual browser payment and signed upgrade proof are pending
+  his completion; a created session alone is not presented as a successful payment.
+
