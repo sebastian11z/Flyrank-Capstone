@@ -27,3 +27,20 @@
   needs merging. The design commit precedes implementation.
 - No real Stripe Checkout has been tested at this point.
 
+## 2026-10-18 - Phase 3: Stripe adapter and durable synchronization
+
+- AI implemented hosted test Checkout, durable Checkout attempt IDs, signature
+  verification through the official SDK, and a persistent webhook inbox. Current
+  Stripe subscription retrieval avoids blindly applying out-of-order snapshots.
+- The worker uses recoverable leases, fencing tokens, three exponential-backoff
+  attempts, CRITICAL failure alerts, and tenant-scoped job visibility.
+- The first payment test run found real AI mistakes: Stripe SDK v16 resources
+  are not dictionaries and use `.to_dict()`, not `.to_dict_recursive()`. The
+  official SDK transport test caught the same problem in price validation.
+- A byte-for-byte HTTP replay test also found JSON field order changed on retry.
+  The stored response now preserves the original field order.
+- After these fixes, `python -m pytest tests/test_http_payments.py tests/test_jobs.py
+  -q` reported **31 passed in 2.99s**, with one upstream TestClient deprecation
+  warning. Those are synthetic events and fake Stripe transport, not live proof.
+- Actual Stripe Checkout/CLI evidence remains pending local account configuration.
+

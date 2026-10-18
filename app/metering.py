@@ -1,7 +1,7 @@
 import calendar
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -86,7 +86,6 @@ def record(path: Path, tenant_id: str, request: Generation, key: str):
             if current + requested > limit:
                 last = calendar.monthrange(now.year, now.month)[1]
                 reset = now.replace(day=last, hour=0, minute=0, second=0, microsecond=0)
-                from datetime import timedelta
                 reset += timedelta(days=1)
                 retry = max(1, int((reset - now).total_seconds()) + 1)
                 raise DomainError(429, "quota_exceeded", f"Monthly {meter} quota exceeded; wait for reset or upgrade",
@@ -104,7 +103,7 @@ def record(path: Path, tenant_id: str, request: Generation, key: str):
             "INSERT INTO usage_events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (result["event_id"], tenant_id, key, request_hash, now.isoformat(), period, 1,
              request.input_tokens, request.cached_input_tokens, request.output_tokens,
-             request.reasoning_tokens, cost, PRICING_VERSION, canonical(result)),
+             request.reasoning_tokens, cost, PRICING_VERSION, json.dumps(result, separators=(",", ":"))),
         )
         return result
 
