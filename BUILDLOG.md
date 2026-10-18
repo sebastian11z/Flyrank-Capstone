@@ -14,5 +14,16 @@
   He must review it and record his own changes and explanations before submission.
 - Stripe and GitHub are available to Sebastian; repository URL is pending.
 
-Later phase entries record actual implementation and checks, not invented work.
+## 2026-10-18 - Phase 2: core billing
+
+- AI implemented migrations, hash-based tenant authentication, integer pricing,
+  atomic metering, immutable retry responses, 429/402 semantics, and safe seeding.
+- Verified `python -m pytest tests/test_metering.py -q`: **16 passed in 13.82s**.
+  The tests include 24 concurrent retries, a real 1,000-call quota boundary,
+  concurrent competition for the final token, and UTC month rollover.
+- Token input/output counts are inclusive; cached/reasoning counts are subsets.
+  A worked example costs exactly 6,600 micro-USD, including the API call.
+- Inspected Sebastian's supplied GitHub repo: public and empty. No existing work
+  needs merging. The design commit precedes implementation.
+- No real Stripe Checkout has been tested at this point.
 
