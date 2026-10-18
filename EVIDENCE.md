@@ -184,7 +184,22 @@ databases; fake Stripe data/transport does not contact Stripe or spend money.
   limitations. `capstone.yaml`, `EVIDENCE.md`, `BUILDLOG.md`, `.env.example` are
   present. `TUTORIAL.md` provides an engineering walkthrough and exercises.
   GitHub Actions checks the same tests on clean Ubuntu and Windows runners;
-  actual CI status is recorded below once available.
+  CI succeeded on both OSes for revision `77519f9`:
+  [Acceptance run 39130480338](https://github.com/sebastian11z/Flyrank-Capstone/actions/runs/39130480338).
+  Both runners installed the pinned dependencies and ran the full test suite.
+
+  A fresh public clone was also seeded and booted with `python -m app`, then
+  exercised over HTTP with `scripts/probe.py core`. Actual output:
+
+  ```text
+  Fresh public clone: all 5 submission files present; migrations and seed succeeded
+  POST /generate twice: 200, byte-identical responses, one new event, +6600 micro-USD
+  event_id: 1939c86a-b6a1-49fb-86aa-1c3495aed032
+  GET /usage used.events: 1; cost_micro_usd: 6600
+  ```
+
+  This clone used the existing isolated dependency environment; independent
+  clean dependency installation is covered by the two GitHub CI runners.
 
 ## Shared requirements (Section 12)
 
@@ -212,7 +227,8 @@ email/paging. Exception text is deliberately omitted to avoid leaking credential
 - [ ] Phase 3 **real** Checkout upgrade gate; implementation commit `8405602`
   is not proof of the live account flow.
 - [x] Phase 4 cost gate locally: live `/usage` is exactly USD 0.006600 for the
-  worked event; proof above. Final pack checks recorded after finalization.
+  worked event; proof above. Five required files are present in the fresh clone,
+  and secret/exclusion checks passed before pushing.
 - [ ] Sebastian reviews selected code, can explain 2-3 arbitrary lines, and adds
   his own honest changes/understanding to BUILDLOG.md.
 - [ ] Sebastian submits the public repository URL through the internship portal.

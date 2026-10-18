@@ -65,5 +65,9 @@
   Sebastian was asked to configure them locally using the README; no secret was
   requested in chat. Live Checkout is still unverified.
 - GitHub Actions is configured for clean Ubuntu and Windows Python 3.12 checks.
-  CI results will be recorded after the pushed revision has actually run.
+  Run 39130480338 succeeded on both OSes for revision 77519f9, with independent
+  installation of all pinned dependencies and the full acceptance suite.
+- A fresh public clone also completed seed, migrations, documented server boot,
+  and the live duplicate/pricing HTTP probe. It reused the isolated dependency
+  environment; clean dependency installation is independently proven by CI.
 

@@ -114,4 +114,3 @@ if __name__ == "__main__":
     if not retry_failed(Settings.from_env().db_path, args.event_id):
         parser.exit(1, "No failed job matched. Completed jobs are never reset.\n")
     print("Failed job queued for retry.")
-

@@ -30,4 +30,3 @@ endpoints:
     path: /webhooks/stripe
     signature_header: Stripe-Signature
     signature_env: STRIPE_WEBHOOK_SECRET
-
