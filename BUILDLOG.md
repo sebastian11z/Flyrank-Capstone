@@ -95,3 +95,25 @@
   Sebastian's browser. Actual browser payment and signed upgrade proof are pending
   his completion; a created session alone is not presented as a successful payment.
 
+## 2026-10-18 - Real Stripe acceptance completed
+
+- Sebastian completed hosted test Checkout and confirmed it in chat. Stripe
+  reported session complete / payment paid; CLI delivered the real signed
+  checkout.session.completed event. The worker processed it once and GET /usage
+  showed Pro limits of 10,000 calls and 1,000,000 tokens.
+- The real event was retrieved from Stripe and replayed twice with the local
+  listener signature. Both returned duplicate; its done job stayed at attempts=1.
+  A forged request while Pro returned 400 and left the complete billing state
+  unchanged. Exact event IDs and sanitized outputs are in EVIDENCE.md.
+- AI scheduled cancellation on this owned test subscription to generate a real
+  subscription.updated event, then canceled it without proration/invoice-now to
+  generate subscription.deleted. Both arrived through CLI and processed once.
+  The local state returned to Free with its original one usage event and 6,600
+  micro-USD cost intact. No local plan was manually changed.
+- CI run 39131512651 verified revision 5f5b0a1 on Ubuntu (59 passed in 4.38s)
+  and Windows (59 passed in 12.58s); both emitted only the existing upstream
+  TestClient deprecation warning.
+- All technical Section 6 checkboxes and the four phase gates now have actual
+  evidence. Sebastian still needs to review/explain the code honestly and submit
+  the repository through the portal; AI cannot assert those human steps happened.
+

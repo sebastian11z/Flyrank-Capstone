@@ -1,8 +1,9 @@
 # Acceptance evidence
 
 Run date: **2026-10-18 (Asia/Manila)**. Accounting periods are UTC.
-Status: **local implementation verified; real Stripe flow and intern submission
-not yet proven**. No pending external step is presented as completed.
+Status: **local implementation and real Stripe test-mode acceptance verified**.
+Sebastian's code explanation and portal submission are separate, unfinished human
+steps. No live-mode payment was made and no pending step is presented as completed.
 
 ## Actual local test run
 
@@ -110,7 +111,7 @@ databases; fake Stripe data/transport does not contact Stripe or spend money.
 
 ### Stripe integration
 
-- [ ] **Real test-mode subscription Checkout works end to end.**
+- [x] **Real test-mode subscription Checkout works end to end.**
 
   Local implementation evidence, not a replacement for actual Checkout:
 
@@ -124,11 +125,25 @@ databases; fake Stripe data/transport does not contact Stripe or spend money.
   limits, official SDK request encoding and stable provider idempotency keys.
   They do not prove Stripe account/product/CLI/browser configuration.
 
-  **Pending actual proof:** initial Free `/usage`, Stripe CLI delivery/event ID
-  for this tenant's successful Checkout, `done` job, Pro `/usage`. Do not paste
-  secrets, signatures, raw customer payloads, card details, or Checkout URLs.
+  **Actual Stripe/browser/CLI proof, 2026-10-18:** Sebastian completed the hosted
+  test Checkout and confirmed completion in chat. Stripe returned session status
+  `complete`, payment status `paid`, and test mode. Initial tenant state was
+  `free`, status `free`, limits 1,000 calls / 100,000 tokens. Actual delivery:
 
-- [ ] **Real signed webhook delivery/replay and plan/status synchronization.**
+  ```text
+  21:26:21 --> checkout.session.completed [evt_1URu7582vP3MRlfw0LkKBvQa]
+  21:26:21 <-- [200] POST http://127.0.0.1:8000/webhooks/stripe [evt_1URu7582vP3MRlfw0LkKBvQa]
+  GET /billing/status: plan=pro, subscription_status=active
+  job: event_id=evt_1URu7582vP3MRlfw0LkKBvQa, status=done, attempts=1, last_error_type=null
+  GET /usage: plan=pro, limit={"api_calls":10000,"ai_tokens":1000000}
+  GET /usage: used.events=1, used.ai_tokens=1500, cost_micro_usd=6600
+  ```
+
+  The product's active USD 19/month licensed test price was independently
+  retrieved and validated. No secrets, card details, raw customer payloads or
+  hosted Checkout URLs are included in this evidence.
+
+- [x] **Real signed webhook delivery/replay and plan/status synchronization.**
 
   Local verification is complete:
 
@@ -146,28 +161,53 @@ databases; fake Stripe data/transport does not contact Stripe or spend money.
   past_due, unpaid and canceled state is tested. Old snapshots cannot undo current
   Stripe truth. Wrong customer/mode/price/quantity cannot grant Pro.
 
-  **Pending actual proof:** bad-signature live HTTP 400 and unchanged plan,
-  initial CLI delivery, two replays of an actual test event with unchanged job,
-  and a Dashboard update/cancel followed by the corresponding signed sync.
-
-  **Guided setup progress (actual account, 2026-10-18):** the test API key
-  authenticated, the active USD 19/month licensed Pro price passed validation,
-  and the Stripe CLI listener connected using API version 2026-09-30.endive.
-  The app was restarted to load the local signing secret. Actual HTTP output:
+  **Actual account proof:** Stripe CLI connected using API version
+  2026-09-30.endive. Raw-body verification used the locally captured signing
+  secret. A forged request was checked both before Checkout and while Pro:
 
   ```text
   GET /health: 200 {"status":"ok","failed_background_jobs":0}
   POST /webhooks/stripe with Stripe-Signature: invalid
   400 {"error":"invalid_webhook","message":"Invalid payload or Stripe signature"}
-  GET /billing/status: {"tenant_id":"tenant_a","plan":"free","subscription_status":"free","jobs":[]}
+  Initial GET /billing/status: {"tenant_id":"tenant_a","plan":"free","subscription_status":"free","jobs":[]}
+  After Checkout: forged webhook returned 400; Pro plan and all processing state unchanged
   ```
 
-  The forged-webhook portion is now proven against the real running configuration.
-  A real test Checkout session was also created and opened in the browser after
-  correcting the API's card-filter parameter to `allowed_payment_method_types`.
-  The updated SDK contract and all 29 HTTP/payment tests passed. Payment completion,
-  upgrade, real event replay and cancellation are still pending; this checkbox
-  remains unchecked.
+  The real Checkout event was retrieved from Stripe and replayed twice with
+  `python scripts/replay_event.py evt_1URu7582vP3MRlfw0LkKBvQa`:
+
+  ```text
+  POST /webhooks/stripe evt_1URu7582vP3MRlfw0LkKBvQa: 200 duplicate
+  POST /webhooks/stripe evt_1URu7582vP3MRlfw0LkKBvQa: 200 duplicate
+  {"event_id":"evt_1URu7582vP3MRlfw0LkKBvQa","event_type":"checkout.session.completed","status":"done","attempts":1,"last_error_type":null}
+  Real test event replayed twice; original processing state unchanged.
+  ```
+
+  The initial authentic delivery was through Stripe CLI. The replay helper signs
+  that retrieved real event locally with the listener secret; it does not claim
+  the CLI performed the two replay POSTs.
+
+  The test subscription was then scheduled for end-of-period cancellation through
+  Stripe's API to generate an update, and finally canceled immediately to exercise
+  deletion. Before each mutation, test mode and customer ownership were checked.
+  Neither mutation wrote the local plan directly. Actual signed deliveries:
+
+  ```text
+  21:27:31 --> customer.subscription.updated [evt_1URu8D82vP3MRlfw6EJl3QOR]
+  21:27:31 <-- [200] POST http://127.0.0.1:8000/webhooks/stripe [evt_1URu8D82vP3MRlfw6EJl3QOR]
+  job: status=done, attempts=1, last_error_type=null
+  GET /billing/status: plan=pro, subscription_status=active
+
+  21:27:46 --> customer.subscription.deleted [evt_1URu8S82vP3MRlfwSpwwVR8E]
+  21:27:46 <-- [200] POST http://127.0.0.1:8000/webhooks/stripe [evt_1URu8S82vP3MRlfwSpwwVR8E]
+  job: status=done, attempts=1, last_error_type=null
+  GET /billing/status: plan=free, subscription_status=free
+  GET /usage: limit={"api_calls":1000,"ai_tokens":100000}, used.events=1, cost_micro_usd=6600
+  ```
+
+  The final Free state is intentional: this acceptance run canceled its test
+  subscription. Usage and cost history remained intact. Creating Checkout again
+  is available for a later demo; no manual Pro grant was added.
 
 ### Data model, tests and documentation
 
@@ -243,8 +283,9 @@ email/paging. Exception text is deliberately omitted to avoid leaking credential
   `https://github.com/sebastian11z/Flyrank-Capstone`; initially public and empty.
 - [x] Design commit precedes implementation: `7a0fd24`.
 - [x] Phase 2 core metering/quota gate: commit `c833ea6`, tests above.
-- [ ] Phase 3 **real** Checkout upgrade gate; implementation commit `8405602`
-  is not proof of the live account flow.
+- [x] Phase 3 **real** Checkout upgrade gate: actual hosted Checkout, signed CLI
+  event, Pro limits, replay and cancellation evidence above. Live API compatibility
+  fix is in `5f5b0a1`; its complete CI suite passed on both OSes.
 - [x] Phase 4 cost gate locally: live `/usage` is exactly USD 0.006600 for the
   worked event; proof above. Five required files are present in the fresh clone,
   and secret/exclusion checks passed before pushing.
@@ -252,5 +293,6 @@ email/paging. Exception text is deliberately omitted to avoid leaking credential
   his own honest changes/understanding to BUILDLOG.md.
 - [ ] Sebastian submits the public repository URL through the internship portal.
 
-Optional stretch goals are intentionally excluded. Neither submission nor live
-Stripe verification is claimed complete by this document.
+Optional stretch goals are intentionally excluded. Live Stripe test-mode
+verification is complete; intern understanding and portal submission are not
+claimed complete by this document.

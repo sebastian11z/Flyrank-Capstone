@@ -4,9 +4,11 @@ A backend for two tenant organizations: meter simulated generation, enforce plan
 quotas before work, calculate exact USD costs, and synchronize Stripe **test-mode**
 subscriptions. No model call, paid infrastructure, or real payment is required.
 
-**Submission status:** local implementation and synthetic Stripe tests are present.
-Real Stripe Checkout/CLI evidence and Sebastian's explanation/submission remain
-pending. Read [EVIDENCE.md](EVIDENCE.md); a mock is not a real Checkout proof.
+**Submission status:** local implementation and real Stripe test Checkout,
+signed delivery, replay, update and cancellation are verified in
+[EVIDENCE.md](EVIDENCE.md). Sebastian's code explanation and portal submission
+remain his final steps. The acceptance run ended on Free after canceling its test
+subscription; usage and costs were preserved.
 
 ## Run on a clean machine
 
@@ -201,7 +203,7 @@ paste secrets into chat, screenshots, Git, command lines, or evidence.
    Confirm `duplicate` acknowledgments and the same job's `attempts: 1`.
 9. Change/cancel the subscription in the test Dashboard and verify its signed
    updated/deleted event synchronizes status/limits. Paste sanitized actual
-   outputs into the pending slots in EVIDENCE.md.
+   outputs into EVIDENCE.md when reproducing the acceptance run.
 
 `scripts/replay_event.py` retrieves an existing real test event with your local
 test key and posts it twice, signed with the configured local listener secret.

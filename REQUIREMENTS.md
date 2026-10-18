@@ -2,6 +2,10 @@
 
 Every row needs current evidence in EVIDENCE.md. Unchecked means unproven.
 
+Current status (2026-10-18): all technical core requirements and phase gates have
+local tests and actual Stripe acceptance evidence in EVIDENCE.md. Sebastian's
+code explanation/ownership review and portal submission remain human steps.
+
 | Source | Requirement | Planned proof |
 |---|---|---|
 | 6 / probe 1 | One event under retries; original response returned | HTTP + concurrent DB tests |
