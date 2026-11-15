@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 data/
 tmp/
+/output/
 *.sqlite3*
 Usage Metering Billing Engine Live Capstone.pdf
 
