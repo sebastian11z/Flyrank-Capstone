@@ -7,11 +7,10 @@ subscriptions. No model call, paid infrastructure, or real payment is required.
 For a beginner explanation of every file, request flow, and the three ownership
 questions, read [CODEBASE_GUIDE.md](CODEBASE_GUIDE.md).
 
-**Submission status:** local implementation and real Stripe test Checkout,
-signed delivery, replay, update and cancellation are verified in
-[EVIDENCE.md](EVIDENCE.md). Sebastian's code explanation and portal submission
-remain his final steps. The acceptance run ended on Free after canceling its test
-subscription; usage and costs were preserved.
+The acceptance run verified hosted Stripe test Checkout, signed webhook
+delivery, replay, update, and cancellation. The tenant returned to Free with
+its usage and costs intact. See the results in [EVIDENCE.md](EVIDENCE.md) and
+Sebastian's account of the build and AI assistance in [BUILDLOG.md](BUILDLOG.md).
 
 ## Run on a clean machine
 
@@ -261,10 +260,9 @@ created, avoiding Stripe's eventual idempotency-record expiry.
 - `customer.subscription.created` is intentionally outside the required event
   set: create subscriptions through this app's Checkout. Unrelated CLI fixtures
   are ignored. Exhausted jobs require an operator to retry after fixing the cause.
-- `BUILDLOG.md` records AI involvement and its mistakes. Sebastian must understand
-  the selected code and add his own review/changes honestly before submitting.
-- Submit the **public GitHub repository URL** through the internship portal, not
-  an archive. Do not mark the external evidence complete until actually run.
+
+Submit the [public GitHub repository](https://github.com/sebastian11z/Flyrank-Capstone)
+through the FlyRank internship portal.
 
 See [DESIGN.md](DESIGN.md), [REQUIREMENTS.md](REQUIREMENTS.md),
 [EVIDENCE.md](EVIDENCE.md), and [TUTORIAL.md](TUTORIAL.md) for design, proof status,

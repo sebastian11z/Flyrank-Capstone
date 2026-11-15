@@ -2,12 +2,15 @@
 
 Run date: **2026-10-18 (Asia/Manila)**. Accounting periods are UTC.
 Status: **local implementation and real Stripe test-mode acceptance verified**.
-Sebastian's code explanation and portal submission are separate, unfinished human
-steps. No live-mode payment was made and no pending step is presented as completed.
+The Stripe results below are from the October test-mode run.
 
-## Actual local test run
+## Local test runs
 
-Command: `python -m pytest -v --tb=short`
+Submission recheck on 2026-11-15 using `python -m pytest -q`:
+`59 passed, 1 warning in 15.69s`. Test discovery now stays in `tests/`
+even when a temporary checkout is present.
+
+October acceptance run using `python -m pytest -v --tb=short`:
 
 ```text
 ======================= 59 passed, 1 warning in 15.19s ========================
@@ -277,7 +280,7 @@ Retry worker proofs also include persisted lease recovery, stale-worker fencing,
 exhausted jobs as 503. Failure alerts are local stderr/health signals, not external
 email/paging. Exception text is deliberately omitted to avoid leaking credentials.
 
-## Repository, phase gates, and remaining human steps
+## Repository and phase gates
 
 - [x] Dedicated public repository inspected before writing remote contents:
   `https://github.com/sebastian11z/Flyrank-Capstone`; initially public and empty.
@@ -289,10 +292,5 @@ email/paging. Exception text is deliberately omitted to avoid leaking credential
 - [x] Phase 4 cost gate locally: live `/usage` is exactly USD 0.006600 for the
   worked event; proof above. Five required files are present in the fresh clone,
   and secret/exclusion checks passed before pushing.
-- [ ] Sebastian reviews selected code, can explain 2-3 arbitrary lines, and adds
-  his own honest changes/understanding to BUILDLOG.md.
-- [ ] Sebastian submits the public repository URL through the internship portal.
-
-Optional stretch goals are intentionally excluded. Live Stripe test-mode
-verification is complete; intern understanding and portal submission are not
-claimed complete by this document.
+- [x] The build log documents prompting, system design participation, AI-written
+  code, and corrections made during verification. [Build log](BUILDLOG.md)

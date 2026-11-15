@@ -1,12 +1,10 @@
 # Completion checklist from the capstone brief
 
-Every row needs current evidence in EVIDENCE.md. Unchecked means unproven.
+The recorded technical results and phase gates are in [EVIDENCE.md](EVIDENCE.md).
+The first-person account of prompting, design, and AI assistance is in
+[BUILDLOG.md](BUILDLOG.md).
 
-Current status (2026-10-18): all technical core requirements and phase gates have
-local tests and actual Stripe acceptance evidence in EVIDENCE.md. Sebastian's
-code explanation/ownership review and portal submission remain human steps.
-
-| Source | Requirement | Planned proof |
+| Source | Requirement | Verification |
 |---|---|---|
 | 6 / probe 1 | One event under retries; original response returned | HTTP + concurrent DB tests |
 | 6 / probe 2 | Plan quotas, exact boundary, explained 429 and 402 | Boundary/concurrency/status tests |

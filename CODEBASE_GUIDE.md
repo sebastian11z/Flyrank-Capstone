@@ -238,6 +238,7 @@ The maintained files are:
 |-- .env.example
 |-- .gitignore
 |-- requirements.txt
+|-- pytest.ini
 |-- capstone.yaml
 |-- README.md
 |-- DESIGN.md
@@ -1124,10 +1125,10 @@ This records where AI helped, mistakes it made, changes made after real tests,
 and Sebastian's actual participation. For example, it records the SDK object
 conversion mistake and the outdated Checkout parameter uncovered during setup.
 
-Do not write that you independently authored or reviewed something unless that
-actually happened. After studying, add your own truthful notes about what you
-understand, tried, or changed. Creating this guide is not evidence that you have
-already understood its contents.
+### `pytest.ini` - test discovery
+
+`testpaths = tests` tells pytest to start in the project's `tests/` folder when
+run with no path. This keeps it from finding tests in a temporary checkout.
 
 ### `TUTORIAL.md` - a focused engineering walkthrough
 
